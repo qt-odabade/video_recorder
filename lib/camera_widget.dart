@@ -1,6 +1,8 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:video_recorder/videos_list.dart';
 
 class CameraWidget extends StatefulWidget {
   const CameraWidget({super.key});
@@ -16,7 +18,7 @@ class _CameraWidgetState extends State<CameraWidget>
   List<CameraDescription> _cameras = [];
   CameraDescription? _currentSelectedCamera;
 
-  XFile? latestVideoFile;
+  // XFile? latestVideoFile;
 
   @override
   void initState() {
@@ -79,17 +81,23 @@ class _CameraWidgetState extends State<CameraWidget>
                                   try {
                                     controller
                                         ?.stopVideoRecording()
-                                        .then((XFile? file) {
+                                        .then((XFile? file) async {
                                       if (mounted) {
                                         setState(() {});
                                       }
 
                                       if (file != null) {
+                                        // latestVideoFile = file;
+
+                                        final directory =
+                                            await getApplicationDocumentsDirectory();
+
+                                        await file.saveTo(
+                                            "${directory.path}/${file.name}");
+
                                         showSnackBar(
                                             message:
-                                                'Video recorded to ${file.path}');
-                                        latestVideoFile = file;
-                                        // _startVideoPlayer();
+                                                'Video  ${file.name} saved');
                                       }
                                     });
                                   } on CameraException catch (e) {
@@ -154,6 +162,16 @@ class _CameraWidgetState extends State<CameraWidget>
                         IconButton(
                           onPressed: _switchCamera,
                           icon: const Icon(Icons.restart_alt_rounded),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const VideosList()),
+                            );
+                          },
+                          icon: const Icon(Icons.navigate_next),
                         )
                       ],
                     ),
