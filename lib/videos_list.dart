@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:video_recorder/video_player.dart';
 
 class VideosList extends StatefulWidget {
   const VideosList({super.key});
@@ -27,7 +28,19 @@ class _VideosListState extends State<VideosList> {
               itemCount: files?.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  title: Text(files![index].toString()),
+                  title: Text(files![index].path.split('/').last),
+                  subtitle: Text(
+                      "${(files![index].statSync().size / 1024 / 1024).toStringAsFixed(2)} MB"),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => VideoPlayerApp(
+                          file: files![index],
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             )
