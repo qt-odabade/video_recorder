@@ -54,7 +54,7 @@ class _VideoPlayerAppState extends State<VideoPlayerApp> {
                         child: _controller.value.isPlaying
                             ? const SizedBox.shrink()
                             : Container(
-                                color: Colors.black12,
+                                color: Colors.black38,
                                 child: const Center(
                                   child: Icon(
                                     Icons.play_arrow,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -17,6 +19,10 @@ class _CameraWidgetState extends State<CameraWidget>
 
   List<CameraDescription> _cameras = [];
   CameraDescription? _currentSelectedCamera;
+  Timer? _videoTimer;
+
+  int minutes = 0, seconds = 0;
+  final ValueNotifier<int> _secondsOfVideoRecorded = ValueNotifier<int>(0);
 
   // XFile? latestVideoFile;
 
@@ -32,6 +38,8 @@ class _CameraWidgetState extends State<CameraWidget>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     controller?.dispose();
+    _videoTimer?.cancel();
+    _secondsOfVideoRecorded.dispose();
 
     super.dispose();
   }
@@ -58,109 +66,197 @@ class _CameraWidgetState extends State<CameraWidget>
           controller == null
               ? const Center(child: CircularProgressIndicator())
               : Column(
-                  children: <Widget>[
+                  children: [
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.9,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: <Widget>[
+                          SizedBox.expand(child: CameraPreview(controller!)),
+                          if (controller?.value.isRecordingVideo ?? false)
+                            Positioned(
+                              top: 50.0,
+                              child: ValueListenableBuilder<int>(
+                                valueListenable: _secondsOfVideoRecorded,
+                                builder: (context, value, child) {
+                                  minutes = value ~/ 60;
+                                  seconds = value % 60;
+
+                                  return Chip(
+                                    avatar: const Icon(
+                                      Icons.circle_rounded,
+                                      color: Colors.red,
+                                    ),
+                                    label: Text(
+                                        "${minutes.toString().padLeft(2, "0")}:${seconds.toString().padLeft(2, "0")}"),
+                                  );
+                                },
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                     Expanded(
-                      child: CameraPreview(controller!),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          controller?.value.isRecordingVideo ?? false
+                              // Pause and Resume
+                              ? IconButton(
+                                  icon: controller?.value.isRecordingPaused ??
+                                          false
+                                      ? const Icon(Icons.play_arrow)
+                                      : const Icon(Icons.pause),
+                                  // color: Colors.white,
+                                  onPressed: (controller?.value.isInitialized ??
+                                              false) &&
+                                          (controller?.value.isRecordingVideo ??
+                                              false)
+                                      ? controller?.value.isRecordingPaused ??
+                                              false
+                                          // Resume recording
+                                          ? () async {
+                                              try {
+                                                controller
+                                                    ?.resumeVideoRecording()
+                                                    .then((value) {
+                                                  setState(() {});
+
+                                                  _videoTimer = Timer.periodic(
+                                                    const Duration(seconds: 1),
+                                                    (timer) {
+                                                      _secondsOfVideoRecorded
+                                                          .value++;
+                                                    },
+                                                  );
+
+                                                  showSnackBar(
+                                                      message:
+                                                          'Video recording resumed');
+                                                });
+                                              } on CameraException catch (e) {
+                                                showSnackBar(
+                                                    message: e.description ??
+                                                        e.code);
+                                              }
+                                            }
+                                          // Pause recording
+                                          : () async {
+                                              try {
+                                                controller
+                                                    ?.pauseVideoRecording()
+                                                    .then((value) {
+                                                  setState(() {});
+                                                  _videoTimer?.cancel();
+                                                  showSnackBar(
+                                                      message:
+                                                          'Video recording paused');
+                                                });
+                                              } on CameraException catch (e) {
+                                                showSnackBar(
+                                                    message: e.description ??
+                                                        e.code);
+                                              }
+                                            }
+                                      : null,
+                                )
+                              // Switch Camera
+                              : IconButton(
+                                  onPressed: _switchCamera,
+                                  icon: const Icon(
+                                    Icons.restart_alt_rounded,
+                                    // color: Colors.white,
+                                  ),
+                                ),
+                          IconButton(
+                            onPressed:
+                                (controller?.value.isInitialized ?? false) &&
+                                        (controller?.value.isRecordingVideo ??
+                                            false)
+                                    // Stop recording Video
+                                    ? () async {
+                                        try {
+                                          controller
+                                              ?.stopVideoRecording()
+                                              .then((XFile? file) async {
+                                            if (mounted) {
+                                              setState(() {});
+                                            }
+
+                                            _videoTimer?.cancel();
+                                            _secondsOfVideoRecorded.value = 0;
+
+                                            if (file != null) {
+                                              // latestVideoFile = file;
+
+                                              final directory =
+                                                  await getApplicationDocumentsDirectory();
+
+                                              await file.saveTo(
+                                                  "${directory.path}/${file.name}");
+
+                                              showSnackBar(
+                                                  message:
+                                                      'Video ${file.name} saved');
+                                            }
+                                          });
+                                        } on CameraException catch (e) {
+                                          showSnackBar(
+                                              message: e.description ?? e.code);
+                                        }
+                                      }
+                                    // Start recording
+                                    : () async {
+                                        try {
+                                          controller
+                                              ?.startVideoRecording()
+                                              .then((value) {
+                                            setState;
+                                            _videoTimer = Timer.periodic(
+                                              const Duration(seconds: 1),
+                                              (timer) {
+                                                _secondsOfVideoRecorded.value++;
+                                              },
+                                            );
+                                          });
+                                        } on CameraException catch (e) {
+                                          showSnackBar(
+                                              message: e.description ?? e.code);
+                                        }
+                                      },
+                            enableFeedback: true,
+                            iconSize: 60.0,
+                            icon: (controller?.value.isInitialized ?? false) &&
+                                    (controller?.value.isRecordingVideo ??
+                                        false)
+                                ? const Icon(
+                                    Icons.stop_circle_outlined,
+                                    color: Colors.red,
+                                  )
+                                : const Icon(
+                                    Icons.camera_rounded,
+                                    // color: Colors.blue,
+                                  ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const VideosList()),
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.photo_library,
+                              // color: Colors.white,
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                   ],
                 ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      bottomNavigationBar: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          IconButton(
-            icon: controller?.value.isRecordingPaused ?? false
-                ? const Icon(Icons.play_arrow)
-                : const Icon(Icons.pause),
-            color: Colors.blue,
-            onPressed: (controller?.value.isInitialized ?? false) &&
-                    (controller?.value.isRecordingVideo ?? false)
-                ? controller?.value.isRecordingPaused ?? false
-                    // Resume recording
-                    ? () async {
-                        try {
-                          controller?.resumeVideoRecording().then((value) {
-                            setState(() {});
-                            showSnackBar(message: 'Video recording resumed');
-                          });
-                        } on CameraException catch (e) {
-                          showSnackBar(message: e.description ?? e.code);
-                        }
-                      }
-                    // Pause recording
-                    : () async {
-                        try {
-                          controller?.pauseVideoRecording().then((value) {
-                            setState(() {});
-                            showSnackBar(message: 'Video recording paused');
-                          });
-                        } on CameraException catch (e) {
-                          showSnackBar(message: e.description ?? e.code);
-                        }
-                      }
-                : null,
-          ),
-          if (!(controller?.value.isRecordingVideo ?? false))
-            IconButton(
-              onPressed: _switchCamera,
-              icon: const Icon(Icons.restart_alt_rounded),
-            ),
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const VideosList()),
-              );
-            },
-            icon: const Icon(Icons.photo_library),
-          )
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: (controller?.value.isInitialized ?? false) &&
-                (controller?.value.isRecordingVideo ?? false)
-            // Stop recording Video
-            ? () async {
-                try {
-                  controller?.stopVideoRecording().then((XFile? file) async {
-                    if (mounted) {
-                      setState(() {});
-                    }
-
-                    if (file != null) {
-                      // latestVideoFile = file;
-
-                      final directory =
-                          await getApplicationDocumentsDirectory();
-
-                      await file.saveTo("${directory.path}/${file.name}");
-
-                      showSnackBar(message: 'Video ${file.name} saved');
-                    }
-                  });
-                } on CameraException catch (e) {
-                  showSnackBar(message: e.description ?? e.code);
-                }
-              }
-            // Start recording
-            : () async {
-                try {
-                  controller?.startVideoRecording().then((value) => setState);
-                } on CameraException catch (e) {
-                  showSnackBar(message: e.description ?? e.code);
-                }
-              },
-        child: (controller?.value.isInitialized ?? false) &&
-                (controller?.value.isRecordingVideo ?? false)
-            ? const Icon(
-                Icons.stop_circle_outlined,
-                color: Colors.red,
-              )
-            : const Icon(
-                Icons.camera_rounded,
-                // color: Colors.blue,
-              ),
-      ),
     );
   }
 
