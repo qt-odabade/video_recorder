@@ -23,6 +23,7 @@ class _VideosListState extends State<VideosList> {
               itemCount: snapshot.data?.length,
               itemBuilder: (context, index) {
                 return ListTile(
+                  leading: const Icon(Icons.file_present_rounded),
                   title: Text(snapshot.data![index].path.split('/').last),
                   subtitle: Text(
                       "${(snapshot.data![index].statSync().size / 1024 / 1024).toStringAsFixed(2)} MB"),
