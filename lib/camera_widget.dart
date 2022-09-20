@@ -62,121 +62,105 @@ class _CameraWidgetState extends State<CameraWidget>
                     Expanded(
                       child: CameraPreview(controller!),
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: <Widget>[
-                        IconButton(
-                          icon: controller!.value.isInitialized &&
-                                  controller!.value.isRecordingVideo
-                              ? const Icon(Icons.stop)
-                              : const Icon(Icons.videocam),
-                          color: controller!.value.isInitialized &&
-                                  controller!.value.isRecordingVideo
-                              ? Colors.red
-                              : Colors.blue,
-                          onPressed: controller!.value.isInitialized &&
-                                  controller!.value.isRecordingVideo
-                              // Stop recording Video
-                              ? () async {
-                                  try {
-                                    controller
-                                        ?.stopVideoRecording()
-                                        .then((XFile? file) async {
-                                      if (mounted) {
-                                        setState(() {});
-                                      }
-
-                                      if (file != null) {
-                                        // latestVideoFile = file;
-
-                                        final directory =
-                                            await getApplicationDocumentsDirectory();
-
-                                        await file.saveTo(
-                                            "${directory.path}/${file.name}");
-
-                                        showSnackBar(
-                                            message:
-                                                'Video  ${file.name} saved');
-                                      }
-                                    });
-                                  } on CameraException catch (e) {
-                                    showSnackBar(
-                                        message: e.description ?? e.code);
-                                  }
-                                }
-                              // Start recording
-                              : () async {
-                                  try {
-                                    controller
-                                        ?.startVideoRecording()
-                                        .then((value) => setState);
-                                  } on CameraException catch (e) {
-                                    showSnackBar(
-                                        message: e.description ?? e.code);
-                                  }
-                                },
-                        ),
-                        IconButton(
-                          icon: controller!.value.isRecordingPaused
-                              ? const Icon(Icons.play_arrow)
-                              : const Icon(Icons.pause),
-                          color: Colors.blue,
-                          onPressed: controller!.value.isInitialized &&
-                                  controller!.value.isRecordingVideo
-                              ? controller!.value.isRecordingPaused
-                                  // Resume recording
-                                  ? () async {
-                                      try {
-                                        controller
-                                            ?.resumeVideoRecording()
-                                            .then((value) {
-                                          setState(() {});
-                                          showSnackBar(
-                                              message:
-                                                  'Video recording resumed');
-                                        });
-                                      } on CameraException catch (e) {
-                                        showSnackBar(
-                                            message: e.description ?? e.code);
-                                      }
-                                    }
-                                  // Pause recording
-                                  : () async {
-                                      try {
-                                        controller
-                                            ?.pauseVideoRecording()
-                                            .then((value) {
-                                          setState(() {});
-                                          showSnackBar(
-                                              message:
-                                                  'Video recording paused');
-                                        });
-                                      } on CameraException catch (e) {
-                                        showSnackBar(
-                                            message: e.description ?? e.code);
-                                      }
-                                    }
-                              : null,
-                        ),
-                        IconButton(
-                          onPressed: _switchCamera,
-                          icon: const Icon(Icons.restart_alt_rounded),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const VideosList()),
-                            );
-                          },
-                          icon: const Icon(Icons.navigate_next),
-                        )
-                      ],
-                    ),
                   ],
                 ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      bottomNavigationBar: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          IconButton(
+            icon: controller?.value.isRecordingPaused ?? false
+                ? const Icon(Icons.play_arrow)
+                : const Icon(Icons.pause),
+            color: Colors.blue,
+            onPressed: (controller?.value.isInitialized ?? false) &&
+                    (controller?.value.isRecordingVideo ?? false)
+                ? controller?.value.isRecordingPaused ?? false
+                    // Resume recording
+                    ? () async {
+                        try {
+                          controller?.resumeVideoRecording().then((value) {
+                            setState(() {});
+                            showSnackBar(message: 'Video recording resumed');
+                          });
+                        } on CameraException catch (e) {
+                          showSnackBar(message: e.description ?? e.code);
+                        }
+                      }
+                    // Pause recording
+                    : () async {
+                        try {
+                          controller?.pauseVideoRecording().then((value) {
+                            setState(() {});
+                            showSnackBar(message: 'Video recording paused');
+                          });
+                        } on CameraException catch (e) {
+                          showSnackBar(message: e.description ?? e.code);
+                        }
+                      }
+                : null,
+          ),
+          if (!(controller?.value.isRecordingVideo ?? false))
+            IconButton(
+              onPressed: _switchCamera,
+              icon: const Icon(Icons.restart_alt_rounded),
+            ),
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const VideosList()),
+              );
+            },
+            icon: const Icon(Icons.photo_library),
+          )
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: (controller?.value.isInitialized ?? false) &&
+                (controller?.value.isRecordingVideo ?? false)
+            // Stop recording Video
+            ? () async {
+                try {
+                  controller?.stopVideoRecording().then((XFile? file) async {
+                    if (mounted) {
+                      setState(() {});
+                    }
+
+                    if (file != null) {
+                      // latestVideoFile = file;
+
+                      final directory =
+                          await getApplicationDocumentsDirectory();
+
+                      await file.saveTo("${directory.path}/${file.name}");
+
+                      showSnackBar(message: 'Video ${file.name} saved');
+                    }
+                  });
+                } on CameraException catch (e) {
+                  showSnackBar(message: e.description ?? e.code);
+                }
+              }
+            // Start recording
+            : () async {
+                try {
+                  controller?.startVideoRecording().then((value) => setState);
+                } on CameraException catch (e) {
+                  showSnackBar(message: e.description ?? e.code);
+                }
+              },
+        child: (controller?.value.isInitialized ?? false) &&
+                (controller?.value.isRecordingVideo ?? false)
+            ? const Icon(
+                Icons.stop_circle_outlined,
+                color: Colors.red,
+              )
+            : const Icon(
+                Icons.camera_rounded,
+                // color: Colors.blue,
+              ),
+      ),
     );
   }
 
