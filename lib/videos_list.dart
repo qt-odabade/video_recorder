@@ -12,48 +12,43 @@ class VideosList extends StatefulWidget {
 }
 
 class _VideosListState extends State<VideosList> {
-  List<File>? files = [];
-
-  @override
-  void initState() {
-    getFiles();
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: files != null
-          ? ListView.builder(
-              itemCount: files?.length,
+      body: FutureBuilder<List<File>>(
+        future: getFiles(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return ListView.builder(
+              itemCount: snapshot.data?.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  title: Text(files![index].path.split('/').last),
+                  title: Text(snapshot.data![index].path.split('/').last),
                   subtitle: Text(
-                      "${(files![index].statSync().size / 1024 / 1024).toStringAsFixed(2)} MB"),
+                      "${(snapshot.data![index].statSync().size / 1024 / 1024).toStringAsFixed(2)} MB"),
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => VideoPlayerApp(
-                          file: files![index],
+                          file: snapshot.data![index],
                         ),
                       ),
                     );
                   },
                 );
               },
-            )
-          : const Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          return const Center(child: CircularProgressIndicator());
+        },
+      ),
     );
   }
 
-  Future<void> getFiles() async {
-    files = await getApplicationDocumentsDirectory()
+  Future<List<File>> getFiles() async {
+    return await getApplicationDocumentsDirectory()
         .then((value) => value.listSync().whereType<File>().toList());
-
-    setState(() {});
-
-    print(files);
   }
 }
