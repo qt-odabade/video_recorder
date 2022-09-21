@@ -39,47 +39,48 @@ class _VideoPlayerAppState extends State<VideoPlayerApp> {
     return Scaffold(
       body: errorMessage != null
           ? Center(child: Text(errorMessage!))
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio,
-                  child: Stack(
-                    alignment: Alignment.bottomCenter,
-                    children: <Widget>[
-                      VideoPlayer(_controller),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 50),
-                        reverseDuration: const Duration(milliseconds: 200),
-                        child: _controller.value.isPlaying
-                            ? const SizedBox.shrink()
-                            : Container(
-                                color: Colors.black38,
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.play_arrow,
-                                    color: Colors.white,
-                                    size: 80.0,
+          : OrientationBuilder(
+              builder: (context, orientation) {
+                return Center(
+                  child: AspectRatio(
+                    aspectRatio: _controller.value.aspectRatio,
+                    child: Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: <Widget>[
+                        VideoPlayer(_controller),
+                        // Play icon
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 50),
+                          reverseDuration: const Duration(milliseconds: 200),
+                          child: _controller.value.isPlaying
+                              ? const SizedBox.shrink()
+                              : Container(
+                                  color: Colors.black38,
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.play_arrow,
+                                      color: Colors.white,
+                                      size: 80.0,
+                                    ),
                                   ),
                                 ),
-                              ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          _controller.value.isPlaying
-                              ? _controller.pause()
-                              : _controller.play();
-                        },
-                      ),
-                    ],
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            _controller.value.isPlaying
+                                ? _controller.pause()
+                                : _controller.play();
+                          },
+                        ),
+                        VideoProgressIndicator(
+                          _controller,
+                          allowScrubbing: true,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                VideoProgressIndicator(
-                  _controller,
-                  allowScrubbing: true,
-                  padding: EdgeInsets.zero,
-                ),
-              ],
+                );
+              },
             ),
     );
   }
