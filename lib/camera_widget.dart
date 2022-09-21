@@ -4,6 +4,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:video_recorder/utils.dart';
 import 'package:video_recorder/videos_list.dart';
 
 class CameraWidget extends StatefulWidget {
@@ -189,11 +190,21 @@ class _CameraWidgetState extends State<CameraWidget>
                                             if (file != null) {
                                               // latestVideoFile = file;
 
+                                              // print(file.mimeType);
+                                              // print(file.name);
+                                              // print(file.path);
+                                              // print(await file.length());
+
+                                              // print(file.mimeType);
+
                                               final directory =
                                                   await getApplicationDocumentsDirectory();
+                                              String newPath =
+                                                  "${directory.path}/${file.name}";
 
-                                              await file.saveTo(
-                                                  "${directory.path}/${file.name}");
+                                              await file.saveTo(newPath);
+
+                                              Utils.getVideoMetaData(newPath);
 
                                               showSnackBar(
                                                   message:
