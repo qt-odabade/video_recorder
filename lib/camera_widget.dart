@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_recorder/utils.dart';
 import 'package:video_recorder/videos_list.dart';
+import 'package:video_thumbnail/video_thumbnail.dart' as vt;
 
 class CameraWidget extends StatefulWidget {
   const CameraWidget({super.key});
@@ -21,6 +23,7 @@ class _CameraWidgetState extends State<CameraWidget>
   List<CameraDescription> _cameras = [];
   CameraDescription? _currentSelectedCamera;
   Timer? _videoTimer;
+  Uint8List? _lastVideoThumbnail;
 
   int minutes = 0, seconds = 0;
   final ValueNotifier<int> _secondsOfVideoRecorded = ValueNotifier<int>(0);
@@ -174,10 +177,16 @@ class _CameraWidgetState extends State<CameraWidget>
                                                   const VideosList()),
                                         );
                                       },
-                                      icon: const Icon(
-                                        Icons.photo_library,
-                                        // color: Colors.white,
-                                      ),
+                                      icon: _lastVideoThumbnail != null
+                                          ? Image.memory(
+                                              _lastVideoThumbnail!,
+                                              width: 35.0,
+                                              fit: BoxFit.fitWidth,
+                                            )
+                                          : const Icon(
+                                              Icons.photo_library,
+                                              // color: Colors.white,
+                                            ),
                                     )
                                   ],
                                 ),
@@ -232,10 +241,16 @@ class _CameraWidgetState extends State<CameraWidget>
                                                   const VideosList()),
                                         );
                                       },
-                                      icon: const Icon(
-                                        Icons.photo_library,
-                                        // color: Colors.white,
-                                      ),
+                                      icon: _lastVideoThumbnail != null
+                                          ? Image.memory(
+                                              _lastVideoThumbnail!,
+                                              width: 35.0,
+                                              fit: BoxFit.fitWidth,
+                                            )
+                                          : const Icon(
+                                              Icons.photo_library,
+                                              // color: Colors.white,
+                                            ),
                                     ),
                                     IconButton(
                                       onPressed:
@@ -466,6 +481,11 @@ class _CameraWidgetState extends State<CameraWidget>
           await file.saveTo(newPath);
 
           Utils.getVideoMetaData(newPath);
+          _lastVideoThumbnail = await vt.VideoThumbnail.thumbnailData(
+              video: newPath, quality: 50, imageFormat: vt.ImageFormat.JPEG);
+
+          // Update the View to show new thumbnail
+          setState(() {});
 
           showSnackBar(message: 'Video ${file.name} saved');
         }
