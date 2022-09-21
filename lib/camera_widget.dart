@@ -75,119 +75,15 @@ class _CameraWidgetState extends State<CameraWidget>
                     return orientation == Orientation.portrait
                         ? Column(
                             children: [
-                              SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.9,
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: <Widget>[
-                                    SizedBox.expand(
-                                        child: CameraPreview(controller!)),
-                                    if (controller?.value.isRecordingVideo ??
-                                        false)
-                                      Positioned(
-                                        top: 50.0,
-                                        child: ValueListenableBuilder<int>(
-                                          valueListenable:
-                                              _secondsOfVideoRecorded,
-                                          builder: (context, value, child) {
-                                            minutes = value ~/ 60;
-                                            seconds = value % 60;
-
-                                            return Chip(
-                                              avatar: const Icon(
-                                                Icons.circle_rounded,
-                                                color: Colors.red,
-                                              ),
-                                              label: Text(
-                                                  "${minutes.toString().padLeft(2, "0")}:${seconds.toString().padLeft(2, "0")}"),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
+                              _cameraPreview(orientation: orientation),
                               Expanded(
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
                                   children: [
-                                    controller?.value.isRecordingVideo ?? false
-                                        // Pause and Resume
-                                        ? IconButton(
-                                            icon: controller?.value
-                                                        .isRecordingPaused ??
-                                                    false
-                                                ? const Icon(Icons.play_arrow)
-                                                : const Icon(Icons.pause),
-                                            // color: Colors.white,
-                                            onPressed: (controller?.value
-                                                            .isInitialized ??
-                                                        false) &&
-                                                    (controller?.value
-                                                            .isRecordingVideo ??
-                                                        false)
-                                                ? controller?.value
-                                                            .isRecordingPaused ??
-                                                        false
-                                                    ? resumeRecording
-                                                    : pauseRecording
-                                                : null,
-                                          )
-                                        // Switch Camera
-                                        : IconButton(
-                                            onPressed: _switchCamera,
-                                            icon: const Icon(
-                                              Icons.restart_alt_rounded,
-                                              // color: Colors.white,
-                                            ),
-                                          ),
-                                    IconButton(
-                                      onPressed:
-                                          (controller?.value.isInitialized ??
-                                                      false) &&
-                                                  (controller?.value
-                                                          .isRecordingVideo ??
-                                                      false)
-                                              ? stopRecording
-                                              : startRecording,
-                                      enableFeedback: true,
-                                      iconSize: 60.0,
-                                      icon: (controller?.value.isInitialized ??
-                                                  false) &&
-                                              (controller?.value
-                                                      .isRecordingVideo ??
-                                                  false)
-                                          ? const Icon(
-                                              Icons.stop_circle_outlined,
-                                              color: Colors.red,
-                                            )
-                                          : const Icon(
-                                              Icons.camera_rounded,
-                                              // color: Colors.blue,
-                                            ),
-                                    ),
-                                    IconButton(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const VideosList()),
-                                        );
-                                      },
-                                      icon: _lastVideoThumbnail != null
-                                          ? Image.memory(
-                                              _lastVideoThumbnail!,
-                                              width: 35.0,
-                                              fit: BoxFit.fitWidth,
-                                            )
-                                          : const Icon(
-                                              Icons.photo_library,
-                                              // color: Colors.white,
-                                            ),
-                                    )
+                                    _buildSwitchButton(),
+                                    _buildShutter(),
+                                    _buildLastVideoThumbnail(),
                                   ],
                                 ),
                               ),
@@ -195,118 +91,15 @@ class _CameraWidgetState extends State<CameraWidget>
                           )
                         : Row(
                             children: [
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.9,
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: <Widget>[
-                                    SizedBox.expand(
-                                        child: CameraPreview(controller!)),
-                                    if (controller?.value.isRecordingVideo ??
-                                        false)
-                                      Positioned(
-                                        top: 50.0,
-                                        child: ValueListenableBuilder<int>(
-                                          valueListenable:
-                                              _secondsOfVideoRecorded,
-                                          builder: (context, value, child) {
-                                            minutes = value ~/ 60;
-                                            seconds = value % 60;
-
-                                            return Chip(
-                                              avatar: const Icon(
-                                                Icons.circle_rounded,
-                                                color: Colors.red,
-                                              ),
-                                              label: Text(
-                                                  "${minutes.toString().padLeft(2, "0")}:${seconds.toString().padLeft(2, "0")}"),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
+                              _cameraPreview(orientation: orientation),
                               Expanded(
                                 child: Column(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
                                   children: [
-                                    IconButton(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const VideosList()),
-                                        );
-                                      },
-                                      icon: _lastVideoThumbnail != null
-                                          ? Image.memory(
-                                              _lastVideoThumbnail!,
-                                              width: 35.0,
-                                              fit: BoxFit.fitWidth,
-                                            )
-                                          : const Icon(
-                                              Icons.photo_library,
-                                              // color: Colors.white,
-                                            ),
-                                    ),
-                                    IconButton(
-                                      onPressed:
-                                          (controller?.value.isInitialized ??
-                                                      false) &&
-                                                  (controller?.value
-                                                          .isRecordingVideo ??
-                                                      false)
-                                              ? stopRecording
-                                              : startRecording,
-                                      enableFeedback: true,
-                                      iconSize: 60.0,
-                                      icon: (controller?.value.isInitialized ??
-                                                  false) &&
-                                              (controller?.value
-                                                      .isRecordingVideo ??
-                                                  false)
-                                          ? const Icon(
-                                              Icons.stop_circle_outlined,
-                                              color: Colors.red,
-                                            )
-                                          : const Icon(
-                                              Icons.camera_rounded,
-                                              // color: Colors.blue,
-                                            ),
-                                    ),
-                                    controller?.value.isRecordingVideo ?? false
-                                        // Pause and Resume
-                                        ? IconButton(
-                                            icon: controller?.value
-                                                        .isRecordingPaused ??
-                                                    false
-                                                ? const Icon(Icons.play_arrow)
-                                                : const Icon(Icons.pause),
-                                            // color: Colors.white,
-                                            onPressed: (controller?.value
-                                                            .isInitialized ??
-                                                        false) &&
-                                                    (controller?.value
-                                                            .isRecordingVideo ??
-                                                        false)
-                                                ? controller?.value
-                                                            .isRecordingPaused ??
-                                                        false
-                                                    ? resumeRecording
-                                                    : pauseRecording
-                                                : null,
-                                          )
-                                        // Switch Camera
-                                        : IconButton(
-                                            onPressed: _switchCamera,
-                                            icon: const Icon(
-                                              Icons.restart_alt_rounded,
-                                              // color: Colors.white,
-                                            ),
-                                          ),
+                                    _buildLastVideoThumbnail(),
+                                    _buildShutter(),
+                                    _buildSwitchButton(),
                                   ],
                                 ),
                               ),
@@ -317,6 +110,104 @@ class _CameraWidgetState extends State<CameraWidget>
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
+
+  Widget _cameraPreview({required Orientation orientation}) => SizedBox(
+        width: orientation == Orientation.landscape
+            ? MediaQuery.of(context).size.width * 0.9
+            : null,
+        height: orientation == Orientation.portrait
+            ? MediaQuery.of(context).size.height * 0.9
+            : null,
+        child: Stack(
+          alignment: Alignment.center,
+          children: <Widget>[
+            SizedBox.expand(child: CameraPreview(controller!)),
+            if (controller?.value.isRecordingVideo ?? false)
+              Positioned(
+                top: orientation == Orientation.portrait ? 50.0 : 35.0,
+                child: ValueListenableBuilder<int>(
+                  valueListenable: _secondsOfVideoRecorded,
+                  builder: (context, value, child) {
+                    minutes = value ~/ 60;
+                    seconds = value % 60;
+
+                    return Chip(
+                      avatar: const Icon(
+                        Icons.circle_rounded,
+                        color: Colors.red,
+                        size: 18,
+                      ),
+                      padding: const EdgeInsets.all(8.0),
+                      label: Text(
+                          "${minutes.toString().padLeft(2, "0")}:${seconds.toString().padLeft(2, "0")}"),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+      );
+
+  Widget _buildSwitchButton() => controller?.value.isRecordingVideo ?? false
+      // Pause and Resume
+      ? IconButton(
+          icon: controller?.value.isRecordingPaused ?? false
+              ? const Icon(Icons.play_arrow)
+              : const Icon(Icons.pause),
+          // color: Colors.white,
+          onPressed: (controller?.value.isInitialized ?? false) &&
+                  (controller?.value.isRecordingVideo ?? false)
+              ? controller?.value.isRecordingPaused ?? false
+                  ? resumeRecording
+                  : pauseRecording
+              : null,
+        )
+      // Switch Camera
+      : IconButton(
+          onPressed: _switchCamera,
+          icon: const Icon(
+            Icons.restart_alt_rounded,
+            // color: Colors.white,
+          ),
+        );
+
+  Widget _buildShutter() => IconButton(
+        onPressed: (controller?.value.isInitialized ?? false) &&
+                (controller?.value.isRecordingVideo ?? false)
+            ? stopRecording
+            : startRecording,
+        enableFeedback: true,
+        iconSize: 60.0,
+        icon: (controller?.value.isInitialized ?? false) &&
+                (controller?.value.isRecordingVideo ?? false)
+            ? const Icon(
+                Icons.stop_circle_outlined,
+                color: Colors.red,
+              )
+            : const Icon(
+                Icons.camera_rounded,
+                // color: Colors.blue,
+              ),
+      );
+
+  Widget _buildLastVideoThumbnail() => IconButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const VideosList()),
+          );
+        },
+        icon: _lastVideoThumbnail != null
+            ? Image.memory(
+                _lastVideoThumbnail!,
+                width: 35.0,
+                fit: BoxFit.fitWidth,
+              )
+            : const Icon(
+                Icons.photo_library,
+                // color: Colors.white,
+              ),
+      );
 
   void showSnackBar({required String message}) {
     ScaffoldMessenger.of(context)
