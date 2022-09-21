@@ -62,10 +62,11 @@ class _CameraWidgetState extends State<CameraWidget>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:
-          // If no camera available, show error msg
-          controller == null
-              ? const Center(child: CircularProgressIndicator())
+      body: controller == null
+          ? const Center(child: CircularProgressIndicator())
+          : _cameras.isEmpty
+              ? const Center(
+                  child: Text('No camera(s) found\nPlease try again later'))
               : OrientationBuilder(
                   builder: (context, orientation) {
                     return orientation == Orientation.portrait
