@@ -38,6 +38,9 @@ dependencies:
   video_thumbnail: ^0.5.3
   flutter_video_info: ^1.2.0
 
+  objectbox: ^1.6.2
+  objectbox_flutter_libs: ^1.6.2
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
@@ -45,6 +48,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  build_runner: ^2.2.1
+  objectbox_generator: ^1.6.2
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
