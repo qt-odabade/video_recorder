@@ -22,7 +22,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(1, 7260572059221251547),
       name: 'VideoFile',
-      lastPropertyId: const IdUid(4, 8825579312505047835),
+      lastPropertyId: const IdUid(12, 2326835429585472378),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -30,11 +30,6 @@ final _entities = <ModelEntity>[
             name: 'id',
             type: 6,
             flags: 1),
-        ModelProperty(
-            id: const IdUid(2, 1576484810646021191),
-            name: 'name',
-            type: 9,
-            flags: 0),
         ModelProperty(
             id: const IdUid(3, 8687047931407882459),
             name: 'videoLocation',
@@ -44,6 +39,46 @@ final _entities = <ModelEntity>[
             id: const IdUid(4, 8825579312505047835),
             name: 'thumbnailLocation',
             type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(5, 7718758373989713993),
+            name: 'title',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(6, 5580376473507223497),
+            name: 'mimetype',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(7, 2884583995314294399),
+            name: 'date',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(8, 6333004221918783348),
+            name: 'width',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(9, 3951826455599913070),
+            name: 'height',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(10, 9219635122633973278),
+            name: 'orientation',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(11, 7892747473789161624),
+            name: 'filesize',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(12, 2326835429585472378),
+            name: 'duration',
+            type: 8,
             flags: 0)
       ],
       relations: <ModelRelation>[],
@@ -76,7 +111,7 @@ ModelDefinition getObjectBoxModel() {
       lastSequenceId: const IdUid(0, 0),
       retiredEntityUids: const [],
       retiredIndexUids: const [],
-      retiredPropertyUids: const [],
+      retiredPropertyUids: const [1576484810646021191],
       retiredRelationUids: const [],
       modelVersion: 5,
       modelVersionParserMinimum: 5,
@@ -92,15 +127,28 @@ ModelDefinition getObjectBoxModel() {
           object.id = id;
         },
         objectToFB: (VideoFile object, fb.Builder fbb) {
-          final nameOffset = fbb.writeString(object.name);
           final videoLocationOffset = fbb.writeString(object.videoLocation);
-          final thumbnailLocationOffset =
-              fbb.writeString(object.thumbnailLocation);
-          fbb.startTable(5);
+          final thumbnailLocationOffset = object.thumbnailLocation == null
+              ? null
+              : fbb.writeString(object.thumbnailLocation!);
+          final titleOffset = fbb.writeString(object.title);
+          final mimetypeOffset = object.mimetype == null
+              ? null
+              : fbb.writeString(object.mimetype!);
+          final dateOffset =
+              object.date == null ? null : fbb.writeString(object.date!);
+          fbb.startTable(13);
           fbb.addInt64(0, object.id);
-          fbb.addOffset(1, nameOffset);
           fbb.addOffset(2, videoLocationOffset);
           fbb.addOffset(3, thumbnailLocationOffset);
+          fbb.addOffset(4, titleOffset);
+          fbb.addOffset(5, mimetypeOffset);
+          fbb.addOffset(6, dateOffset);
+          fbb.addInt64(7, object.width);
+          fbb.addInt64(8, object.height);
+          fbb.addInt64(9, object.orientation);
+          fbb.addInt64(10, object.filesize);
+          fbb.addFloat64(11, object.duration);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -110,12 +158,23 @@ ModelDefinition getObjectBoxModel() {
 
           final object = VideoFile(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name: const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 6, ''),
+              title: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, ''),
               videoLocation: const fb.StringReader(asciiOptimization: true)
                   .vTableGet(buffer, rootOffset, 8, ''),
               thumbnailLocation: const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 10, ''));
+                  .vTableGetNullable(buffer, rootOffset, 10),
+              date: const fb.StringReader(asciiOptimization: true)
+                  .vTableGetNullable(buffer, rootOffset, 16),
+              duration: const fb.Float64Reader()
+                  .vTableGetNullable(buffer, rootOffset, 26),
+              filesize: const fb.Int64Reader()
+                  .vTableGetNullable(buffer, rootOffset, 24),
+              height: const fb.Int64Reader()
+                  .vTableGetNullable(buffer, rootOffset, 20),
+              mimetype: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 14),
+              orientation: const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 22),
+              width: const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 18));
 
           return object;
         })
@@ -129,15 +188,43 @@ class VideoFile_ {
   /// see [VideoFile.id]
   static final id = QueryIntegerProperty<VideoFile>(_entities[0].properties[0]);
 
-  /// see [VideoFile.name]
-  static final name =
-      QueryStringProperty<VideoFile>(_entities[0].properties[1]);
-
   /// see [VideoFile.videoLocation]
   static final videoLocation =
-      QueryStringProperty<VideoFile>(_entities[0].properties[2]);
+      QueryStringProperty<VideoFile>(_entities[0].properties[1]);
 
   /// see [VideoFile.thumbnailLocation]
   static final thumbnailLocation =
+      QueryStringProperty<VideoFile>(_entities[0].properties[2]);
+
+  /// see [VideoFile.title]
+  static final title =
       QueryStringProperty<VideoFile>(_entities[0].properties[3]);
+
+  /// see [VideoFile.mimetype]
+  static final mimetype =
+      QueryStringProperty<VideoFile>(_entities[0].properties[4]);
+
+  /// see [VideoFile.date]
+  static final date =
+      QueryStringProperty<VideoFile>(_entities[0].properties[5]);
+
+  /// see [VideoFile.width]
+  static final width =
+      QueryIntegerProperty<VideoFile>(_entities[0].properties[6]);
+
+  /// see [VideoFile.height]
+  static final height =
+      QueryIntegerProperty<VideoFile>(_entities[0].properties[7]);
+
+  /// see [VideoFile.orientation]
+  static final orientation =
+      QueryIntegerProperty<VideoFile>(_entities[0].properties[8]);
+
+  /// see [VideoFile.filesize]
+  static final filesize =
+      QueryIntegerProperty<VideoFile>(_entities[0].properties[9]);
+
+  /// see [VideoFile.duration]
+  static final duration =
+      QueryDoubleProperty<VideoFile>(_entities[0].properties[10]);
 }

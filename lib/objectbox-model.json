@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:7260572059221251547",
-      "lastPropertyId": "4:8825579312505047835",
+      "lastPropertyId": "12:2326835429585472378",
       "name": "VideoFile",
       "properties": [
         {
@@ -13,11 +13,6 @@
           "name": "id",
           "type": 6,
           "flags": 1
-        },
-        {
-          "id": "2:1576484810646021191",
-          "name": "name",
-          "type": 9
         },
         {
           "id": "3:8687047931407882459",
@@ -28,6 +23,46 @@
           "id": "4:8825579312505047835",
           "name": "thumbnailLocation",
           "type": 9
+        },
+        {
+          "id": "5:7718758373989713993",
+          "name": "title",
+          "type": 9
+        },
+        {
+          "id": "6:5580376473507223497",
+          "name": "mimetype",
+          "type": 9
+        },
+        {
+          "id": "7:2884583995314294399",
+          "name": "date",
+          "type": 9
+        },
+        {
+          "id": "8:6333004221918783348",
+          "name": "width",
+          "type": 6
+        },
+        {
+          "id": "9:3951826455599913070",
+          "name": "height",
+          "type": 6
+        },
+        {
+          "id": "10:9219635122633973278",
+          "name": "orientation",
+          "type": 6
+        },
+        {
+          "id": "11:7892747473789161624",
+          "name": "filesize",
+          "type": 6
+        },
+        {
+          "id": "12:2326835429585472378",
+          "name": "duration",
+          "type": 8
         }
       ],
       "relations": []
@@ -41,7 +76,9 @@
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    1576484810646021191
+  ],
   "retiredRelationUids": [],
   "version": 1
 }
