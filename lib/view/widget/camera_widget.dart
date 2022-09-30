@@ -4,9 +4,11 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_video_info/flutter_video_info.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:video_recorder/utils.dart';
-import 'package:video_recorder/videos_list.dart';
+import 'package:video_recorder/model/video_file.dart';
+import 'package:video_recorder/service/database.dart';
+import 'package:video_recorder/view/videos_list.dart';
 import 'package:video_thumbnail/video_thumbnail.dart' as vt;
 
 class CameraWidget extends StatefulWidget {
@@ -23,7 +25,7 @@ class _CameraWidgetState extends State<CameraWidget>
   List<CameraDescription> _cameras = [];
   CameraDescription? _currentSelectedCamera;
   Timer? _videoTimer;
-  String? _lastVideoThumbnailPath;
+  VideoFile? _lastVideoFile;
 
   int minutes = 0, seconds = 0;
   final ValueNotifier<int> _secondsOfVideoRecorded = ValueNotifier<int>(0);
@@ -34,7 +36,10 @@ class _CameraWidgetState extends State<CameraWidget>
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     getCameras();
-    loadThumbnail();
+
+    _lastVideoFile = Database.instance.files.isNotEmpty
+        ? Database.instance.files.first
+        : null;
 
     super.initState();
   }
@@ -198,9 +203,9 @@ class _CameraWidgetState extends State<CameraWidget>
             MaterialPageRoute(builder: (context) => const VideosList()),
           );
         },
-        icon: _lastVideoThumbnailPath != null
+        icon: _lastVideoFile?.thumbnailLocation != null
             ? Image.file(
-                File(_lastVideoThumbnailPath!),
+                File(_lastVideoFile!.thumbnailLocation!),
                 width: 35.0,
                 fit: BoxFit.fitWidth,
               )
@@ -367,6 +372,7 @@ class _CameraWidgetState extends State<CameraWidget>
         // print(file.mimeType);
 
         final directory = await getApplicationDocumentsDirectory();
+
         String fileName =
             "${DateTime.now().toIso8601String().substring(0, 19)}.${file.name.split('.').last}";
 
@@ -380,37 +386,38 @@ class _CameraWidgetState extends State<CameraWidget>
           tbDirectory = await tbDirectory.create(recursive: true);
         }
 
-        String newPath = "${vidDirectory.path}/$fileName";
+        String videoPath = "${vidDirectory.path}/$fileName";
+        await file.saveTo(videoPath);
 
-        await file.saveTo(newPath);
+        final videoData = await FlutterVideoInfo().getVideoInfo(videoPath);
 
-        Utils.getVideoMetaData(newPath);
-
-        _lastVideoThumbnailPath = await vt.VideoThumbnail.thumbnailFile(
-          video: newPath,
-          thumbnailPath: tbDirectory.path,
-          imageFormat: vt.ImageFormat.JPEG,
-          quality: 50,
+        _lastVideoFile = VideoFile(
+          title: fileName,
+          videoLocation: videoPath,
+          thumbnailLocation: await vt.VideoThumbnail.thumbnailFile(
+            video: videoPath,
+            thumbnailPath: tbDirectory.path,
+            imageFormat: vt.ImageFormat.JPEG,
+            quality: 50,
+          ),
+          date: videoData?.date,
+          duration: videoData?.duration,
+          filesize: videoData?.filesize,
+          height: videoData?.height,
+          mimetype: videoData?.mimetype,
+          orientation: videoData?.orientation,
+          width: videoData?.width,
         );
+
+        Database.instance.saveVideoFile(videoFile: _lastVideoFile!);
 
         // Update the View to show new thumbnail
         setState(() {});
 
-        showSnackBar(message: 'Video ${file.name} saved');
+        showSnackBar(message: 'Video ${_lastVideoFile?.title} saved');
       });
     } on CameraException catch (e) {
       showSnackBar(message: e.description ?? e.code);
-    }
-  }
-
-  Future<void> loadThumbnail() async {
-    final directory = await getApplicationDocumentsDirectory();
-
-    final thumbnailDirectory = Directory('${directory.path}/Thumbnails');
-
-    if (await thumbnailDirectory.exists()) {
-      _lastVideoThumbnailPath =
-          thumbnailDirectory.listSync().whereType<File>().first.path;
     }
   }
 }

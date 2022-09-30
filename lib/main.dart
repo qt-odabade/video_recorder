@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:video_recorder/camera_widget.dart';
+import 'package:video_recorder/service/database.dart';
+import 'package:video_recorder/view/widget/camera_widget.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Database.instance.init();
 
   runApp(const VideoRecorder());
 }

@@ -1,8 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:video_recorder/video_player.dart';
+import 'package:video_recorder/model/video_file.dart';
+import 'package:video_recorder/service/database.dart';
+import 'package:video_recorder/view/widget/video_player.dart';
 
 class VideosList extends StatefulWidget {
   const VideosList({super.key});
@@ -12,13 +13,10 @@ class VideosList extends StatefulWidget {
 }
 
 class _VideosListState extends State<VideosList> {
-  List<File> files = [];
-  List<File> thumbnails = [];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<List<File>>(
+      body: FutureBuilder<List<VideoFile>>(
         future: getFiles(),
         builder: (context, snapshot) {
           print(snapshot.connectionState);
@@ -30,24 +28,18 @@ class _VideosListState extends State<VideosList> {
               return const Center(child: CircularProgressIndicator());
 
             case ConnectionState.done:
-              if (files.isEmpty) {
+              if (snapshot.data?.isEmpty ?? true) {
                 return const Center(
                   child: Text('No recordings found'),
                 );
               }
 
               return ListView.builder(
-                itemCount: files.length,
+                itemCount: snapshot.data!.length,
                 itemBuilder: (context, index) {
-                  var fileName =
-                      files[index].path.split('/').last.split('.').first;
-
                   return ListTile(
                     leading: Image.file(
-                      thumbnails.firstWhere(
-                        (element) => element.path.endsWith("$fileName.jpg"),
-                        orElse: () => File(''),
-                      ),
+                      File(snapshot.data![index].thumbnailLocation ?? ''),
                       errorBuilder: (context, error, stackTrace) {
                         return const Icon(Icons.file_present_rounded);
                       },
@@ -55,15 +47,18 @@ class _VideosListState extends State<VideosList> {
                       height: 40.0,
                       fit: BoxFit.cover,
                     ),
-                    title: Text(files[index].path.split('/').last),
-                    subtitle: Text(
-                        "${(files[index].statSync().size / 1024 / 1024).toStringAsFixed(2)} MB"),
+                    title: Text(snapshot.data![index].title),
+                    subtitle: snapshot.data![index].filesize != null &&
+                            snapshot.data![index].duration != null
+                        ? Text(
+                            "(${snapshot.data![index].duration! ~/ 1000}secs) ${(snapshot.data![index].filesize! / 1024 / 1024).toStringAsFixed(2)} MB")
+                        : null,
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => VideoPlayerApp(
-                            file: files[index],
+                            file: File(snapshot.data![index].videoLocation),
                           ),
                         ),
                       );
@@ -77,19 +72,21 @@ class _VideosListState extends State<VideosList> {
     );
   }
 
-  Future<List<File>> getFiles() async {
-    final directory = await getApplicationDocumentsDirectory();
+  Future<List<VideoFile>> getFiles() async {
+    return Database.instance.files;
 
-    final videoDirectory = Directory('${directory.path}/Videos');
-    files = videoDirectory.listSync().whereType<File>().toList();
+    // final directory = await getApplicationDocumentsDirectory();
 
-    print(files);
+    // final videoDirectory = Directory('${directory.path}/Videos');
+    // files = videoDirectory.listSync().whereType<File>().toList();
 
-    final thumbnailDirectory = Directory('${directory.path}/Thumbnails');
-    thumbnails = thumbnailDirectory.listSync().whereType<File>().toList();
+    // print(files);
 
-    print(thumbnails);
+    // final thumbnailDirectory = Directory('${directory.path}/Thumbnails');
+    // thumbnails = thumbnailDirectory.listSync().whereType<File>().toList();
 
-    return files;
+    // print(thumbnails);
+
+    // return files;
   }
 }
